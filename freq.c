@@ -9,6 +9,11 @@
 typedef struct prefixnode prefixnode;
 typedef struct horinode horinode;
 typedef struct verticalnode verticalnode;
+prefixnode *createnode();
+verticalnode *createvnode();
+horinode *createhnode();
+void insert(prefixnode *, size_t, horinode *, size_t);
+void inserttofreq(verticalnode*);
 struct prefixnode{
 	verticalnode *ptr;
 	prefixnode **branches;
@@ -22,7 +27,7 @@ prefixnode *createnode(){
 }
 
 struct verticalnode{
-	int value;/*change to size_t*/
+	size_t value;/*change to size_t*/
 	verticalnode *next, *prev;
 	horinode *parent;
 };
@@ -43,9 +48,9 @@ horinode *createhnode(){
 
 
 
-void insert(prefixnode *head, int value, horinode *ll){/*change back to size_t*/
+void insert(prefixnode *head, size_t  value, horinode *ll, size_t  orivalue){/*change back to size_t*/
 	int branch = value %16;
-	int newvalue = value/16;
+	size_t  newvalue = value/16;
 	/*if branches = null create branches*/
 	if(head->branches == NULL){
 		head->branches = malloc(16* sizeof (prefixnode*));
@@ -55,10 +60,12 @@ void insert(prefixnode *head, int value, horinode *ll){/*change back to size_t*/
 		head->branches[branch]=createnode();
 	}
 	if(newvalue!=0){
-		insert(head->branches[branch], newvalue);	
+		insert(head->branches[branch], newvalue, ll, orivalue);	
 	}else{
 		if(head->branches[branch]->ptr==NULL){
 			verticalnode *temp = createvnode();
+			head->branches[branch]->ptr=temp;
+			temp->value = orivalue;
 			temp->parent = ll;
 			temp->next=temp->parent->bucket;
 			ll->bucket=temp;
@@ -77,20 +84,31 @@ void inserttofreq(verticalnode *ptr){
 	}
 	if(ptr->parent->next==NULL){
 		ptr->parent->next=createhnode();
+		ptr->parent->next->freq=ptr->parent->freq+1;
 	}
 	ptr->parent=ptr->parent->next;
-	ptr.next=parent->bucket;
+	ptr->next=ptr->parent->bucket;
 	ptr->parent->bucket=ptr;
 
 }
 
 
-int main(){
+int main(int argc, char ** argv){
 	prefixnode* tree=createnode();
-	insert(tree, 34);
-	insert(tree,5);
-	printf("%d\n",tree->branches[2]->branches[2]->hasdata);
-	printf("%d\n",tree->branches[5]->hasdata);
+	horinode* ll=createhnode();
+	ll->freq=1;
+	FILE *fp = fopen(argv[3],"r");
+	size_t addr;
+	char c;
+	if(fp!=NULL){
+		c=fgetc(fp);
+		c=fgetc(fp);
+		while(c!=EOF){
+		fscanf(fp, "%zx", &addr);
+			insert(tree, addr,ll,addr);
+			printf("askdjfkasdjf");
+		}
+	}
 	return 0;
 }
 
